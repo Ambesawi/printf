@@ -1,50 +1,46 @@
-#include "printf.h"
-
+#include "main.h"
 /**
- * _printf - prints string and character 
- * @format: string that contains the format to be printed
- * Return: number
+ * _printf - produces output according to a format
+ * @format: format string containing the characters and the specifiers
+ * Description: this function will call the get_print() function that will
+ * determine which printing function to call depending on the conversion
+ * specifiers contained into fmt
+ * Return: length of the formatted output string
  */
 int _printf(char *format, ...)
 {
-	int written = 0, (*structype)(char *, va_list);
-	char q[3];
-	va_list pa;
+	int (*pfunc)(va_list, flags_t *);
+	const char *p;
+	va_list arguments;
+	flags_t flags = {0, 0, 0};
 
-	if (format == NULL)
+	register int count = 0;
+
+	va_start(arguments, format);
+	if (!format || (format[0] == '%' && !format[1]))
 		return (-1);
-	q[2] = '\0';
-	va_start(pa, format);
-	_putchar(-1);
-	while (format[0])
+	if (format[0] == '%' && format[1] == ' ' && !format[2])
+		return (-1);
+	for (p = format; *p; p++)
 	{
-		if (format[0] == '%')
+		if (*p == '%')
 		{
-			structype = driver(format);
-			if (structype)
+			p++;
+			if (*p == '%')
 			{
-				q[0] = '%';
-				q[1] = format[1];
-				written += structype(q, pa);
+				count += _putchar('%');
+				continue;
 			}
-			else if (format[1] != '\0')
-			{
-				written += _putchar('%');
-				written += _putchar(format[1]);
-			}
-			else
-			{
-				written += _putchar('%');
-				break;
-			}
-			format += 2;
-		}
-		else
-		{
-			written += _putchar(format[0]);
-			format++;
-		}
+			while (get_flag(*p, &flags))
+				p++;
+			pfunc = get_print(*p);
+			count += (pfunc)
+				? pfunc(arguments, &flags)
+				: _printf("%%%c", *p);
+		} else
+			count += _putchar(*p);
 	}
-	_putchar(-2);
-	return (written);
+	_putchar(-1);
+	va_end(arguments);
+	return (count);
 }
