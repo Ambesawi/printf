@@ -24,7 +24,7 @@ int _putchar(char c)
 		buf[i] = c;
 		i++;
 	}
-	return(1);
+	return (1);
 }
 
 /**
